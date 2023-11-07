@@ -115,7 +115,7 @@ from_lexer(L) ->
   end.
 
 parse(Source) ->
-  Lexed = lexer(Source),
+  Lexed = lexer(<<Source/binary, "\n">>),
   from_lexer(Lexed).
 
 parse_file(Filename) ->
