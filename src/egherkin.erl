@@ -89,10 +89,10 @@ lexer(<<"\n", S/binary>>, {keeptext, Text, _White}, Result) ->
   lexer(S, {keepwhite, <<>>}, [crlf, Text | Result]);
 lexer(<<C, S/binary>>, {keeptext, Text, _White}, Result) when ?is_crlf(C) ->
   lexer(S, <<>>, [crlf, Text | Result]);
-lexer(<<$@, S/binary>>, {keeptext, <<>>, _White}, Result) ->
-  lexer(S, skipwhite, [at_sign | Result]);
-lexer(<<$@, S/binary>>, {keeptext, Text, _White}, Result) ->
-  lexer(S, skipwhite, [at_sign, Text | Result]);
+%lexer(<<$@, S/binary>>, {keeptext, <<>>, _White}, Result) ->
+%  lexer(S, skipwhite, [at_sign | Result]);
+%lexer(<<$@, S/binary>>, {keeptext, Text, _White}, Result) ->
+%  lexer(S, skipwhite, [at_sign, Text | Result]);
 lexer(<<C, S/binary>>, {keeptext, Text, White}, Result) when ((C == $\s) orelse (C == $\t)) ->
   lexer(S, {keeptext, Text, <<White/binary, C>>}, Result);
 lexer(<<C, S/binary>>, {keeptext, Text, White}, Result) ->
@@ -265,9 +265,9 @@ parse_docstring(L, Line) ->
 parse_docstring([docstring_keyword, crlf | L], Line, Result) ->
   {{docstring, lists:reverse(Result)}, L, Line+1};
 parse_docstring([String, crlf | L], Line, Result) when is_binary(String) ->
-  parse_docstring(L, Line+1, [String | Result]);
+  parse_docstring(L, Line+1, [<<String/binary, "\n">> | Result]);
 parse_docstring([crlf | L], Line, Result) ->
-  String = <<"">>,
+  String = <<"\n">>,
   parse_docstring(L, Line+1, [String | Result]);
 parse_docstring([Doc| Rest], Line, Result) ->
   parse_docstring(Rest, Line+1, [Doc | Result]);
