@@ -268,7 +268,7 @@ parse_docstring(L, Line) ->
   parse_docstring(L, Line, []).
 
 parse_docstring([<<"\"\"\"">>, <<"\n">> | L], Line, Result) ->
-  {{docstring, lists:reverse(Result)}, L, Line+1};
+  {{<<"\"\"\"">>, lists:reverse(Result)}, L, Line+1};
 parse_docstring([String, <<"\n">> | L], Line, Result) when is_binary(String) ->
   parse_docstring(L, Line+1, [<<String/binary, "\n">> | Result]);
 parse_docstring([<<"Then">> | L], Line, Result) ->
