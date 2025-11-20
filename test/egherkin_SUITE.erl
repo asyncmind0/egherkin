@@ -267,7 +267,7 @@ parse_file(_) ->
   %?assertEqual(<<"1 a ciao\n">>, mock_io:extract(IO)),
   %mock_io:teardown({IO, GL}),
   r3:break(),
-  ?assertEqual(test_data:parse_file(Scenario), egherkin:parse_file("../../../../test.feature")),
+  ?assertEqual(test_data:parse_file(Scenario), egherkin:parse_file("test.feature")),
   ok.
 
 %%endregion

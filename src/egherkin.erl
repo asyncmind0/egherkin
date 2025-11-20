@@ -89,10 +89,10 @@ lexer(<<"\n", S/binary>>, {keeptext, Text, _White}, Result) ->
   lexer(S, {keepwhite, <<>>}, [<<"\n">>, Text | Result]);
 lexer(<<C, S/binary>>, {keeptext, Text, _White}, Result) when ?is_crlf(C) ->
   lexer(S, <<>>, [<<"\n">>, Text | Result]);
-lexer(<<$@, S/binary>>, {keeptext, <<>>, _White}, Result) ->
-  lexer(S, skipwhite, [<<"@">> | Result]);
-lexer(<<$@, S/binary>>, {keeptext, Text, _White}, Result) ->
-  lexer(S, skipwhite, [<<"@">>, Text | Result]);
+%lexer(<<$@, S/binary>>, {keeptext, <<>>, _White}, Result) ->
+%  lexer(S, skipwhite, [<<"@">> | Result]);
+%lexer(<<$@, S/binary>>, {keeptext, Text, _White}, Result) ->
+%  lexer(S, skipwhite, [<<"@">>, Text | Result]);
 lexer(<<C, S/binary>>, {keeptext, Text, White}, Result) when ((C == $\s) orelse (C == $\t)) ->
   lexer(S, {keeptext, Text, <<White/binary, C>>}, Result);
 lexer(<<C, S/binary>>, {keeptext, Text, White}, Result) ->
@@ -132,17 +132,30 @@ parse_headers([sharp_sign, Comment, <<"\n">> | L], Line, Headers) when is_binary
 parse_headers(L, Line, Headers) ->
   {lists:reverse(Headers), L, Line}.
 
+split_tags(Bin, Line) when is_binary(Bin) ->
+    %% 1. Split on spaces
+    Words = binary:split(Bin, <<" ">>, [global, trim_all]),
+
+    %% 2. Normalise each word by stripping a leading "@"
+    [ {Line, strip_at(W)} || W <- Words, W =/= <<>> ].
+
+strip_at(<<$@, Rest/binary>>) ->
+    Rest;
+strip_at(Bin) ->
+    Bin.
+
 parse_tags(L, Line) ->
   parse_tags(L, Line, []).
 
 parse_tags([<<"@">>, Name, <<"\n">> | L], Line, Tags) when is_binary(Name) ->
-  parse_tags(L, Line+1, [{Line, Name} | Tags]);
+    LineTags = split_tags(Name, Line),
+  parse_tags(L, Line+1,LineTags ++  Tags);
 parse_tags([<<"@">>, Name | L], Line, Tags) when is_binary(Name) ->
   parse_tags(L, Line, [{Line, Name} | Tags]);
 parse_tags([<<"\n">> | L], Line, Tags) ->
   parse_tags(L, Line+1, Tags);
 parse_tags(L, Line, Tags) ->
-  {lists:reverse([T||{_L, T} <- Tags]), L, Line}.
+  {lists:reverse(Tags), L, Line}.
 
 parse_feature_line([<<"Feature:">>, Name, <<"\n">> | L], Line) when is_binary(Name) ->
   case parse_comments(L, Line+1) of
