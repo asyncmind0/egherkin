@@ -178,7 +178,7 @@ parse_comments(L, Line, Comments) ->
 
 parse_background([<<"\n">> | L], Line) ->
   parse_background(L, Line+1);
-parse_background([<<"Background:">>, <<"\n">> | L], Line) ->
+parse_background([<<"Background:">> | L], Line) ->
   case parse_steps(L, Line+1) of
   {failed, _, _} = Failed ->
     Failed;
@@ -188,9 +188,13 @@ parse_background([<<"Background:">>, <<"\n">> | L], Line) ->
 parse_background(L, Line) ->
   {undefined, L, Line}.
 
+parse_scenario_definitions([<<"\n">> | L], Line) ->
+  parse_scenario_definitions(L, Line+1);
 parse_scenario_definitions(L, Line) ->
   parse_scenario_definitions(L, Line, []).
 
+parse_scenario_definitions([<<"\n">> | L], Line,[]) ->
+  parse_scenario_definitions(L, Line+1, []);
 parse_scenario_definitions([] = L, Line, Scenarios) ->
   {lists:reverse(Scenarios), L, Line};
 parse_scenario_definitions([<<"\n">> | L], Line, Scenarios) ->
@@ -231,9 +235,11 @@ parse_scenario_definition([<<"Scenario Outline:">>, Name, <<"\n">> | L], Line) w
   end;
 parse_scenario_definition(L, Line) when is_binary(L) ->
     parse_scenario_definition(lexer(L), Line);
-parse_scenario_definition(_, Line) ->
+parse_scenario_definition(L, Line) ->
   {failed, Line, "expected 'Scenario:' or 'Scenario Outline:'"}.
 
+parse_steps([<<"\n">> | L], Line) ->
+  parse_steps(L, Line+1, []);
 parse_steps(L, Line) ->
   parse_steps(L, Line, []).
 
